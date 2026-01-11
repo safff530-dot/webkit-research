@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>WebKit Compositing Stress Test</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #0e0e11;
+        color: #e5e5e7;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui;
+        overflow: hidden;
+    }
+
+    header {
+        padding: 16px;
+        background: #16161d;
+        border-bottom: 1px solid #2a2a35;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    header b {
+        color: #ffffff;
+    }
+
+    button {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        right: 24px;
+        padding: 16px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        border: none;
+        background: #3a7afe;
+        color: white;
+    }
+
+    button:active {
+        opacity: 0.85;
+    }
+
+    .layer {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        border-radius: 60px;
+        background: rgba(255,255,255,0.08);
+
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+
+        mix-blend-mode: difference;
+        transform: translate3d(0,0,0);
+
+        animation: move 0.12s infinite linear;
+    }
+
+    @keyframes move {
+        from { transform: translate3d(0,0,0) scale(1); }
+        to   { transform: translate3d(120px,120px,0) scale(1.4); }
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+<b>WebKit Rendering Stress Test</b><br>
+This page reproduces a system-level instability using standard CSS compositing features
+(backdrop-filter, blend modes, 3D transforms).  
+No external resources. No user interaction beyond a single click.
+</header>
+
+<button onclick="runTest()">Run Rendering Test</button>
+
+<div id="root"></div>
+
+<script>
+const root = document.getElementById('root');
+let created = 0;
+const LIMIT = 5000;
+
+function runTest() {
+    function frame() {
+        for (let i = 0; i < 50; i++) {
+            const el = document.createElement('div');
+            el.className = 'layer';
+            el.style.left = Math.random() * innerWidth + 'px';
+            el.style.top  = Math.random() * innerHeight + 'px';
+            root.appendChild(el);
+            created++;
+        }
+
+        if (created < LIMIT) {
+            requestAnimationFrame(frame);
+        } else {
+            // Force full repaint
+            document.body.style.zoom = "1.0001";
+        }
+    }
+    frame();
+}
+</script>
+
+</body>
+</html>
